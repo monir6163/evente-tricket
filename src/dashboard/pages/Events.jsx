@@ -19,88 +19,51 @@ export default function Events() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [perPage, setPerPage] = useState(6);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const { data } = await axios.get(
-          `${baseUrl}/event/getall/1/${perPage}/${searchkeyword}`
-        );
-        if (data?.status === true) {
-          setEvents(data?.data[0]?.Rows);
-          setTotal(data?.data[0]?.Total[0]?.count);
-          setLoading(false);
-        }
-      } catch (error) {
-        toast.error("Failed to fetch events");
-        setLoading(false);
-      }
-    };
-    fetchEvents();
-  }, []);
+    fetchEvents(1);
+  }, [perPage, searchkeyword]);
 
-  const searchKeywordOnChange = async (e) => {
-    setSearchKeyword(e.target.value);
-
-    if (e.target.value.length === 0) {
-      setLoading(true);
-      setSearchKeyword("0");
-      try {
-        const { data } = await axios.get(
-          `${baseUrl}/event/getall/1/${perPage}/0`
-        );
-        if (data?.status === true) {
-          setEvents(data?.data[0]?.Rows);
-          setTotal(data?.data[0]?.Total[0]?.count);
-        }
-      } catch (error) {
-        toast.error("Failed to fetch events");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    axios
-      .get(`${baseUrl}/event/getall/1/${perPage}/${searchkeyword}`)
-      .then((res) => {
-        if (res.data?.status === true) {
-          setEvents(res.data?.data[0]?.Rows);
-          setTotal(res.data?.data[0]?.Total[0]?.count);
-        }
-      })
-      .catch((error) => {
-        toast.error("Failed to fetch events");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
-  const isEventExpired = (eventDate) => {
-    return new Date(eventDate) < new Date();
-  };
-
-  const handlePageClick = async (event) => {
-    let pageNo = event.selected;
+  const fetchEvents = async (page) => {
     setLoading(true);
     try {
       const { data } = await axios.get(
-        `${baseUrl}/event/getall/${pageNo + 1}/${perPage}/${searchkeyword}`
+        `${baseUrl}/event/getall/${page}/${perPage}/${searchkeyword}`
       );
       if (data?.status === true) {
         setEvents(data?.data[0]?.Rows);
         setTotal(data?.data[0]?.Total[0]?.count);
+        setCurrentPage(page);
       }
     } catch (error) {
       toast.error("Failed to fetch events");
     } finally {
       setLoading(false);
     }
+  };
+
+  const searchKeywordOnChange = async (e) => {
+    setSearchKeyword(e.target.value);
+
+    if (e.target.value.length === 0) {
+      setSearchKeyword("0");
+      fetchEvents(1);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchEvents(1);
+  };
+
+  const handlePageClick = async (event) => {
+    const pageNo = event.selected + 1;
+    fetchEvents(pageNo);
+  };
+
+  const isEventExpired = (eventDate) => {
+    return new Date(eventDate) < new Date();
   };
 
   return (
