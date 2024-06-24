@@ -1,34 +1,59 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { baseUrl } from "../../config/config";
+import LoadingSpinner from "../../utility/LoadingSpinner";
 
-export default function AddEvents() {
+export default function EditEvent() {
+  const { id } = useParams();
   const [state, setState] = useState({
     title: "",
     date: "",
     totalSeat: "",
     location: "",
     price: "",
-    qty: "",
-    category: "",
     description: "",
+    category: "",
+    qty: "",
   });
-  const [category, setCategory] = useState([]);
-  const [loader, setLoader] = useState(false);
   const [preview, setPreview] = useState(null);
   const [eventImg, setEventImg] = useState(null);
+  const [loader, setLoader] = useState(false);
+  const [category, setCategory] = useState([]);
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
-    async function fetchCategory() {
+    async function fetchData() {
       try {
-        const { data } = await axios.get(`${baseUrl}/category/all`);
-        setCategory(data?.data);
+        const { data } = await axios.get(`${baseUrl}/event/getId/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const cat = await axios.get(`${baseUrl}/category/all`);
+        setCategory(cat?.data?.data);
+        setState({
+          title: data?.data?.title,
+          date: data?.data?.date,
+          totalSeat: data?.data?.totalSeat,
+          location: data?.data?.location,
+          price: data?.data?.price,
+          description: data?.data?.description,
+          category: data?.data?.category?._id,
+          qty: data?.data?.qty,
+        });
+        setPreview(data?.data?.event_img?.url);
       } catch (error) {
-        toast.error("Failed to fetch category");
+        toast.error(error?.response?.data?.message || "Something went wrong");
       }
     }
-    fetchCategory();
-  }, []);
+    fetchData();
+  }, [id, token]);
+
+  const handleInputChange = (e) => {
+    setState({ ...state, [e.target.name]: e.target.value });
+  };
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -40,50 +65,48 @@ export default function AddEvents() {
     setEventImg(file);
     reader.readAsDataURL(file);
   };
-
-  const handleInputChange = (e) => {
-    setState({ ...state, [e.target.name]: e.target.value });
-  };
-
-  const handleAddEvent = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoader(true);
+    const formData = new FormData();
+    formData.append("title", state.title);
+    formData.append("date", state.date);
+    formData.append("totalSeat", state.totalSeat);
+    formData.append("location", state.location);
+    formData.append("price", state.price);
+    formData.append("description", state.description);
+    formData.append("category", state.category);
+    formData.append("qty", state.qty);
+    formData.append("event_img", eventImg);
     try {
-      const formData = new FormData();
-      formData.append("title", state.title);
-      formData.append("date", state.date);
-      formData.append("totalSeat", state.totalSeat);
-      formData.append("location", state.location);
-      formData.append("price", state.price);
-      formData.append("qty", state.qty);
-      formData.append("category", state.category);
-      formData.append("description", state.description);
-      formData.append("event_img", eventImg);
-      const { data } = await axios.post(`${baseUrl}/event/create`, formData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const { data } = await axios.patch(
+        `${baseUrl}/event/update/${id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       if (data?.status === true) {
+        toast.success(data.message);
         setLoader(false);
-        toast.success(data?.message);
-        e.target.reset();
-        setPreview(null);
       }
     } catch (error) {
       setLoader(false);
       toast.error(error?.response?.data?.message || "Something went wrong");
     }
   };
-
+  if (state?.title === "") return <LoadingSpinner />;
   return (
     <div className="flex items-center justify-center">
       <div className="w-full max-w-4xl">
         <h1 className="text-center text-slate-800 font-medium text-2xl">
-          Add Events
+          update events
         </h1>
         <form
-          onSubmit={handleAddEvent}
+          onSubmit={handleSubmit}
           className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
         >
           <div className="flex flex-wrap -mx-3">
@@ -99,7 +122,7 @@ export default function AddEvents() {
                 id="title"
                 name="title"
                 type="text"
-                placeholder="Enter Event Title"
+                value={state.title}
                 onChange={handleInputChange}
               />
             </div>
@@ -114,7 +137,7 @@ export default function AddEvents() {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:outline-none focus:shadow-outline"
                 id="eventdate"
                 type="datetime-local"
-                placeholder="Enter Event Date"
+                value={state.date}
                 name="date"
                 onChange={handleInputChange}
               />
@@ -133,7 +156,7 @@ export default function AddEvents() {
                 id="totalSeat"
                 name="totalSeat"
                 type="number"
-                placeholder="Enter total Seat"
+                value={state.totalSeat}
                 onChange={handleInputChange}
               />
             </div>
@@ -149,7 +172,7 @@ export default function AddEvents() {
                 id="location"
                 name="location"
                 type="text"
-                placeholder="Enter Event Location"
+                value={state.location}
                 onChange={handleInputChange}
               />
             </div>
@@ -167,7 +190,7 @@ export default function AddEvents() {
                 id="price"
                 name="price"
                 type="number"
-                placeholder="Enter Event Tricket Price"
+                value={state.price}
                 onChange={handleInputChange}
               />
             </div>
@@ -207,7 +230,11 @@ export default function AddEvents() {
               >
                 <option>Select Category</option>
                 {category?.map((cat) => (
-                  <option key={cat?._id} value={cat?._id}>
+                  <option
+                    key={cat?._id}
+                    value={cat?._id}
+                    selected={state.category === cat?._id}
+                  >
                     {cat?.name}
                   </option>
                 ))}
@@ -225,7 +252,7 @@ export default function AddEvents() {
                 id="qty"
                 name="qty"
                 type="number"
-                placeholder="Enter Total Ticket Quantity"
+                value={state.qty}
                 onChange={handleInputChange}
               />
             </div>
@@ -241,7 +268,7 @@ export default function AddEvents() {
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:outline-none focus:shadow-outline"
               id="description"
               name="description"
-              placeholder="Enter Event Description"
+              value={state.description}
               onChange={handleInputChange}
             ></textarea>
           </div>
@@ -250,7 +277,7 @@ export default function AddEvents() {
               className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               type="submit"
             >
-              {loader ? "Please wait..." : "Add Event"}
+              {loader ? "Please wait..." : "Update Event"}
             </button>
           </div>
         </form>

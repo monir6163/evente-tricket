@@ -56,7 +56,7 @@ export default function Sidebar() {
                 <span className="text-xl">
                   <AiOutlinePlus />
                 </span>
-                <span>Events Category</span>
+                <span>Add Category</span>
               </Link>
             </li>
             <li>

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import Logo from "../../assets/logo.png";
 import { baseUrl } from "../../config/config";
@@ -8,6 +8,7 @@ import storeContext from "../../context/storeContext";
 export default function Login() {
   const { dispatch } = useContext(storeContext);
   // const navigate = useNavigate();
+  const location = useLocation();
   const [state, setState] = useState({
     email: "",
     password: "",
@@ -31,8 +32,9 @@ export default function Login() {
       if (data.status === true) {
         toast.success(data.message);
         setLoader(false);
+        const { from } = location.state || { from: { pathname: "/" } };
+        window.location.href = from.pathname;
       }
-      window.location.href = "/dashboard";
     } catch (error) {
       setLoader(false);
       toast.error(error?.response?.data?.message || "Something went wrong");

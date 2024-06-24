@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { baseUrl } from "../../config/config";
 import LoadingSpinner from "../../utility/LoadingSpinner";
@@ -19,6 +20,29 @@ export default function AllCatList() {
 
     fetchCategory();
   }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      const isConfirm = window.confirm(
+        "Are you sure you want to delete this category?"
+      );
+      if (!isConfirm) return;
+      const { data } = await axios.delete(
+        `${baseUrl}/category/delete?id=${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (data?.status === true) {
+        toast.success(data?.message);
+        setCategory(category.filter((cat) => cat?._id !== id));
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    }
+  };
 
   return (
     <div className="bg-gray-100">
@@ -58,8 +82,17 @@ export default function AllCatList() {
                     className="w-10 h-10"
                   />
                 </td>
-                <td className="px-6 py-4">
-                  <button className="bg-red-500 text-white px-3 py-1 rounded-sm">
+                <td className="flex px-6 py-4 gap-1">
+                  <Link
+                    to={`/dashboard/category/edit/${cat?._id}`}
+                    className="bg-blue-500 text-white px-3 py-1 rounded-sm"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(cat?._id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded-sm"
+                  >
                     Delete
                   </button>
                 </td>
