@@ -23,12 +23,7 @@ export default function CategoryEvents() {
   const fetchEvents = async () => {
     try {
       const { data } = await axios.get(
-        `${baseUrl}/event/category/events/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+        `${baseUrl}/event/category/events/${id}`
       );
       if (data?.status === true) {
         setEvents(data?.data);
