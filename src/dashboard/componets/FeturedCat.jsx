@@ -64,7 +64,7 @@ export default function FeturedCat() {
           itemClass="carousel-item-padding-40-px"
         >
           {cat?.map((item, i) => (
-            <Link to={`/events/${item._id}`} key={i}>
+            <Link to={`/events/category/${item._id}`} key={i}>
               <div className="rounded-lg bg-white shadow-lg m-2 hover:shadow-xl transition duration-500 ease-in-out hover:bg-slate-200">
                 <img
                   src={item?.cat_img?.url}

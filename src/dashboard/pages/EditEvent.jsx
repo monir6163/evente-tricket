@@ -26,11 +26,14 @@ export default function EditEvent() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const { data } = await axios.get(`${baseUrl}/event/getId/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const { data } = await axios.get(
+          `${baseUrl}/event/getall/admin/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         const cat = await axios.get(`${baseUrl}/category/all`);
         setCategory(cat?.data?.data);
         setState({

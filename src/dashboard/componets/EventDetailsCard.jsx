@@ -1,13 +1,15 @@
 import { useState } from "react";
+import StarRatings from "react-star-ratings";
 import formatTimeWithAMPM from "../../utility/TimeConvert";
 
 /* eslint-disable react/prop-types */
-export default function EventDetailsCard({ eventDetails }) {
+export default function EventDetailsCard({ eventDetails, reviews }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleReadMore = () => {
     setIsExpanded(!isExpanded);
   };
+
   return (
     <div>
       <div className="relative mb-5">
@@ -76,6 +78,47 @@ export default function EventDetailsCard({ eventDetails }) {
           {isExpanded ? "Read Less" : "Read More"}
         </button>
       </div>
+      <hr className="my-2" />
+      {/* show review */}
+      <div className="flex items-center gap-2 mt-4 mb-4">
+        <h1 className="text-2xl font-bold">Reviews: </h1>
+        <div className="flex gap-2 items-center">
+          <span
+            className="text-green-500 font-bold
+            bg-green-100 px-2 py-1 rounded-lg
+          "
+          >
+            {reviews?.length}
+          </span>
+        </div>
+      </div>
+      {reviews?.map((review, i) => (
+        <a
+          key={i}
+          className="flex flex-col mb-3 items-center bg-white border border-gray-200 rounded-lg shadow md:flex-row md:max-w-xl hover:bg-gray-100 transition duration-300 ease-in-out"
+        >
+          <img
+            className="w-20 h-20 rounded-full object-cover"
+            src={review?.userId?.avater?.url}
+            alt={review?.userId?.name}
+          />
+          <div className="flex flex-col justify-between p-4 leading-normal">
+            <h5 className="mb-2 text-2xl flex items-center gap-3 font-bold tracking-tight text-gray-900 ">
+              {review?.userId?.name}{" "}
+              <StarRatings
+                rating={review?.rating}
+                starRatedColor="blue"
+                starDimension="20px"
+                starSpacing="1px"
+              />
+            </h5>
+            <p className="mb-3 text-gray-700">
+              {new Date(review?.createdAt).toDateString()}
+            </p>
+            <p className="mb-3 font-normal text-gray-700">{review?.comment}</p>
+          </div>
+        </a>
+      ))}
     </div>
   );
 }

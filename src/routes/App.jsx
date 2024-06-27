@@ -10,6 +10,7 @@ import AllCatList from "../dashboard/pages/AllCatList";
 import AllEventList from "../dashboard/pages/AllEventList";
 import Cancel from "../dashboard/pages/Cancel";
 import Card from "../dashboard/pages/Card";
+import CategoryEvents from "../dashboard/pages/CategoryEvents";
 import ChangePassword from "../dashboard/pages/ChangePassword";
 import EditCategory from "../dashboard/pages/EditCategory";
 import EditEvent from "../dashboard/pages/EditEvent";
@@ -40,6 +41,7 @@ function App() {
         <Route path="/" element={<FrontLayout />}>
           <Route path="" element={<Home />} />
           <Route path="events" element={<Events />} />
+          <Route path="events/category/:id" element={<CategoryEvents />} />
           <Route path="/payment/success/:tranId" element={<Success />} />
           <Route path="/payment/fail/:tranId" element={<Failed />} />
           <Route path="/payment/cancel/:tranId" element={<Cancel />} />
